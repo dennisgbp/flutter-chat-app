@@ -1,5 +1,6 @@
 import 'package:chat/helpers/mostrar_alerta.dart';
 import 'package:chat/services/auth_service.dart';
+import 'package:chat/services/socket_service.dart';
 import 'package:chat/widgets/btn_azul.dart';
 import 'package:chat/widgets/custom_input.dart';
 import 'package:chat/widgets/labels.dart';
@@ -35,7 +36,6 @@ class LoginPage extends StatelessWidget {
   }
 }
 
-
 class _Form extends StatefulWidget {
   const _Form({Key? key}) : super(key: key);
 
@@ -52,6 +52,7 @@ class _FormState extends State<_Form> {
   Widget build(BuildContext context) {
 
     final authService = Provider.of<AuthService>(context);
+    final socketService = Provider.of<SocketService>(context);
 
     return Container(
       margin: EdgeInsets.only(top: 40),
@@ -81,10 +82,8 @@ class _FormState extends State<_Form> {
              final loginOK = await authService.login(emailCtrl.text.trim(), passCtrl.text.trim());
 
              if(loginOK){
-               //TODO: Navegar a otra pantalla
+               socketService.socket!.connect();
                Navigator.pushReplacementNamed(context, 'usuarios');
-
-               //TODO: conectar a Socket Server
              }else{
                //Mostrar alerta
                mostrarAlerta(context, 'Login incorrecto', 'Revisar credenciales');

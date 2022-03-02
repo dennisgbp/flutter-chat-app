@@ -74,9 +74,9 @@ class _FormState extends State<_Form> {
 
          BtnAzul(
            text: 'Ingrese',
-           onPressed:
-           //authService.autenticando ? null :
-           () async{
+           onPressed: authService.autenticando
+               ? () => {}
+               : () async {
              FocusScope.of(context).unfocus();
              final loginOK = await authService.login(emailCtrl.text.trim(), passCtrl.text.trim());
 

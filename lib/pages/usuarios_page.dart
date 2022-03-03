@@ -1,6 +1,8 @@
 import 'package:chat/models/usuario.dart';
 import 'package:chat/services/auth_service.dart';
+import 'package:chat/services/chat_service.dart';
 import 'package:chat/services/socket_service.dart';
+import 'package:chat/services/usuarios_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
@@ -14,13 +16,22 @@ class  UsuariosPage extends StatefulWidget {
 
 class _UsuariosPageState extends State<UsuariosPage> {
 
+  final usuarioService = new UsuariosService();
   RefreshController _refreshController = RefreshController(initialRefresh: false);
 
-  final usuarios = [
+  List<Usuario> usuarios = [];
+
+  /*final usuarios = [
     Usuario(online: true, email: 'test1@test.com', nombre: 'Maria', uid: '1'),
     Usuario(online: false, email: 'test2@test.com', nombre: 'Melissa', uid: '2'),
     Usuario(online: true, email: 'test3@test.com', nombre: 'Fernando', uid: '3'),
-  ];
+  ];*/
+
+  @override
+  void initState() {
+    this._cargarUsuarios();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,6 +92,11 @@ class _UsuariosPageState extends State<UsuariosPage> {
             borderRadius: BorderRadius.circular(100)
         ),
       ),
+      onTap: () {
+        final chatService = Provider.of<ChatService>(context, listen: false);
+        chatService.usuarioPara = usuario;
+        Navigator.pushNamed(context, 'chat');
+      },
     );
   }
 
@@ -94,8 +110,12 @@ class _UsuariosPageState extends State<UsuariosPage> {
   }
 
   _cargarUsuarios()  async {
-    await Future.delayed(Duration(milliseconds: 1000));
+    this.usuarios = await usuarioService.getUsuarios();
+    setState(() {
 
+    });
+
+    //await Future.delayed(Duration(milliseconds: 1000));
     _refreshController.refreshCompleted();
   }
 }

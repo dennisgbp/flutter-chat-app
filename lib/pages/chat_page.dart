@@ -1,8 +1,12 @@
 import 'dart:io';
 
+import 'package:chat/services/auth_service.dart';
+import 'package:chat/services/chat_service.dart';
+import 'package:chat/services/socket_service.dart';
 import 'package:chat/widgets/chat_message.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class  ChatPage extends StatefulWidget {
   const ChatPage ({Key? key}) : super(key: key);
@@ -15,24 +19,53 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
 
   final _textController = new TextEditingController();
   final _focusNode = new FocusNode();
+  ChatService? chatService;
+  SocketService? socketService;
+  AuthService? authService;
 
   List<ChatMessage> _messages = [];
 
   bool _estaEscribiendo = false;
 
   @override
+  void initState() {
+    super.initState();
+    this.chatService = Provider.of<ChatService>(context, listen: false);
+    this.socketService = Provider.of<SocketService>(context, listen: false);
+    this.authService = Provider.of<AuthService>(context, listen: false);
+    this.socketService!.socket!.on('mensaje-personal', (data) => null);
+  }
+
+  void _escucharMensaje(dynamic payload){
+    //print('Tengo mensaje! $payload');
+    ChatMessage message = new ChatMessage(
+        texto: payload['mensaje'],
+        uid: payload['de'],
+        animationController: AnimationController(vsync: this, duration: Duration(milliseconds: 300)),
+    );
+    setState(() {
+      _messages.insert(0, message);
+    });
+
+    message.animationController.forward();
+  }
+
+  @override
   Widget build(BuildContext context) {
+
+    final usuarioPara = chatService!.usuarioPara;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
         title: Column(
           children: <Widget>[
             CircleAvatar(
-              child: Text('Te', style: TextStyle(fontSize: 12)),
+              child: Text(usuarioPara?.nombre.substring(0,2) ?? "?", style: TextStyle(fontSize: 12)),
               backgroundColor: Colors.blue[100],
             ),
             SizedBox(height: 3),
-            Text('Melissa Flores', style: TextStyle(color: Colors.black87, fontSize: 10))
+            Text(usuarioPara?.nombre ?? "?", style: TextStyle(color: Colors.black87, fontSize: 10))
           ],
         ),
         centerTitle: true,
@@ -128,7 +161,6 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
 
     if(texto.length == 0)return;
 
-    print(texto);
     _textController.clear();
     _focusNode.requestFocus();
 
@@ -140,8 +172,12 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
     _messages.insert(0, newMessage);
     newMessage.animationController.forward();
 
-    setState(() {
-      _estaEscribiendo= false;
+    setState(() { _estaEscribiendo= false; });
+
+    this.socketService!.emit('mensaje-personal', {
+      'de': this.authService!.usuario!.uid,
+      'para': this.chatService!.usuarioPara!.uid,
+      'mensaje': texto
     });
   }
   @override

@@ -89,7 +89,7 @@ class _FormState extends State<_Form> {
               final registroOk = await authService.register(nameCtrl.text.trim(), emailCtrl.text.trim(), passCtrl.text.trim());
 
               if ( registroOk == true ) {
-                socketService.socket!.connect();
+                socketService.connect();
                 Navigator.pushReplacementNamed(context, 'usuarios');
               } else {
                 mostrarAlerta(context, 'Registro incorrecto', registroOk );

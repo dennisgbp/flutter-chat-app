@@ -37,7 +37,7 @@ class _UsuariosPageState extends State<UsuariosPage> {
         leading: IconButton(
           icon: Icon(Icons.exit_to_app, color: Colors.black87,),
           onPressed: () {
-            socketService.socket!.disconnect();
+            socketService.disconnect();
             Navigator.pushReplacementNamed(context, 'login');
             AuthService.deleteToken();
           },

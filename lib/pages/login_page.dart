@@ -82,7 +82,7 @@ class _FormState extends State<_Form> {
              final loginOK = await authService.login(emailCtrl.text.trim(), passCtrl.text.trim());
 
              if(loginOK){
-               socketService.socket!.connect();
+               socketService.connect();
                Navigator.pushReplacementNamed(context, 'usuarios');
              }else{
                //Mostrar alerta

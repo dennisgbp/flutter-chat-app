@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:chat/models/mensajes_response.dart';
 import 'package:chat/services/auth_service.dart';
 import 'package:chat/services/chat_service.dart';
 import 'package:chat/services/socket_service.dart';
@@ -34,9 +35,26 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
     this.socketService = Provider.of<SocketService>(context, listen: false);
     this.authService = Provider.of<AuthService>(context, listen: false);
     this.socketService!.socket!.on('mensaje-personal', (data) => null);
+
+    _cargarHistorial(this.chatService!.usuarioPara!.uid);
+  }
+
+  void _cargarHistorial (String usuarioID) async{
+    List<Mensaje> chat = await this.chatService!.getChat(usuarioID);
+
+    final history = chat.map((m) => new ChatMessage(
+        texto: m.mensaje,
+        uid: m.de,
+        animationController: new AnimationController(vsync: this, duration: Duration(milliseconds: 0))..forward(),
+    ));
+
+    setState(() {
+      _messages.insertAll(0, history);
+    });
   }
 
   void _escucharMensaje(dynamic payload){
+    //print(payload['mensaje']);
     //print('Tengo mensaje! $payload');
     ChatMessage message = new ChatMessage(
         texto: payload['mensaje'],
@@ -166,7 +184,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
 
     final newMessage = new ChatMessage(
         texto: texto,
-        uid: '123',
+        uid: authService!.usuario!.uid,
         animationController: AnimationController(vsync: this, duration: Duration(milliseconds: 300)),
     );
     _messages.insert(0, newMessage);
@@ -182,10 +200,10 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
   }
   @override
   void dispose() {
-    // TODO: implement dispose
     for(ChatMessage message in _messages){
       message.animationController.dispose();
     }
+    this.socketService!.socket!.off('mensaje-personal');
     super.dispose();
   }
 }
